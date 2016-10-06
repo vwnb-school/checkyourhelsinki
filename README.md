@@ -1,6 +1,6 @@
 # checkyourhelsinki
 
 - npm install
-- node run server.js
+- node server.js
 
 http://localhost:3000
