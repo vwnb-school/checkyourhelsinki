@@ -47,7 +47,7 @@ app.get('/api', function(req, res) {
     var inputAddress = req.query.address;
     
     /* Number of different modules that should be requested */
-    var expectedNum = 3; //can be dynamic or defined by hand
+    var expectedNum = 4; //can be dynamic or defined by hand
     
     /* Results of those requests go in this array */
     var modules = [];
@@ -82,6 +82,17 @@ app.get('/api', function(req, res) {
     /* Helper for title case */
     function toTitleCase(str){
         return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+    }
+    
+    /* Helper to cherrypick object properties (from the Excel file mostly) */
+    function pruneObject(everything, desired){
+        var result = {};
+        for(var key in everything){
+            if(desired.indexOf(key) != -1){
+                result[key] = everything[key];
+            }
+        }
+        return result;
     }
 
 
@@ -124,7 +135,7 @@ app.get('/api', function(req, res) {
         }
         var titleStr = titleArr.join(" / ");
         var descrStr = "";
-            descrStr = typeof perusPiiri != "undefined" ? titleStr + " is located in " + toTitleCase(perusPiiri.properties.NIMI) : "";
+            descrStr = typeof perusPiiri != "undefined" ? titleStr + " is located in " + toTitleCase(perusPiiri.properties.NIMI) : "Couldn't map "+titleStr+" to any Helsinki neighborhood. Maybe it's not in Helsinki?";
         
         var introModule = {
             title: titleStr,
@@ -172,16 +183,35 @@ app.get('/api', function(req, res) {
                 // as thus: colName(i).toUpperCase()+rowNum
                 demographicsObj[ demographicsByRegion.Sheets.Taulukko[ colName(i).toUpperCase() + "3" ].v ] = demographicsByRegion.Sheets.Taulukko[ colName(i).toUpperCase() + rowNum ].v;
             }
+            
             var demographicsModule = {
                 title: "Big mess of demographics",
                 type: "mess",
                 data: demographicsObj
             }
             addModule( demographicsModule );
+            
+            
+            var ageDemographicsModule = {
+                title: "Age demographics",
+                type: "pie",
+                data: pruneObject(demographicsObj, [
+                        "0-6-vuotiaat",
+                        "7-15-vuotiaat",
+                        "16-18-vuotiaat",
+                        "19-24-vuotiaat",
+                        "25-39-vuotiaat",
+                        "40-64-vuotiaat",
+                        "Yli 65-vuotiaat"
+                      ])
+            }
+            addModule( ageDemographicsModule );
+            
+            
         }else{
             
             /* Upon failure, lower expectations */
-            expectedNum--;
+            expectedNum = expectedNum - 2; /* 2 out of all modules fail on this check */
             tryResponse();
             
         }

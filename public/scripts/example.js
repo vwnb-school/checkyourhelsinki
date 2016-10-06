@@ -3,10 +3,20 @@
 var ModuleList = React.createClass({
   render: function() {
     var modules = this.props.data.map(function(module) {
-      return (
-        <Module title={module.title} data={module.data} type={module.type}>
-        </Module>
-      );
+      switch(module.type){
+        case "mess":
+        case "pie":
+        case "text":
+          return (
+            <ShitModule title={module.title} data={module.data} type={module.type}>
+            </ShitModule>
+          );
+        case "map":
+          return (
+            <MapModule title={module.title} data={module.data} type={module.type}>
+            </MapModule>
+          );
+      }
     });
     return (
       <div className="moduleList">
@@ -16,7 +26,7 @@ var ModuleList = React.createClass({
   }
 });
 
-var Module = React.createClass({
+var ShitModule = React.createClass({
   rawMarkup: function() {
     var md = new Remarkable();
     var rawMarkup = md.render(this.props.children.toString());
@@ -28,6 +38,25 @@ var Module = React.createClass({
       <section className="module">
         <h2>
           {this.props.title}
+        </h2>
+        {JSON.stringify(this.props.data)}
+      </section>
+    );
+  }
+});
+
+var MapModule = React.createClass({
+  rawMarkup: function() {
+    var md = new Remarkable();
+    var rawMarkup = md.render(this.props.children.toString());
+    return { __html: rawMarkup };
+  },
+
+  render: function() {
+    return (
+      <section className="module">
+        <h2>
+          Imaginary map of {this.props.title}
         </h2>
         {JSON.stringify(this.props.data)}
       </section>
@@ -53,15 +82,17 @@ var AddressForm = React.createClass({
   },
   render: function() {
     return (
-      <form className="addressForm" onSubmit={this.handleSubmit}>
-        <input
-          type="text"
-          placeholder="Address search"
-          value={this.state.address}
-          onChange={this.handleAddressChange}
-        />
-        <input type="submit" value="Post" />
-      </form>
+      <section className="addressForm">
+        <form onSubmit={this.handleSubmit}>
+            <input
+            type="text"
+            placeholder="Address search"
+            value={this.state.address}
+            onChange={this.handleAddressChange}
+            />
+            <input type="submit" value="Find details" />
+        </form>
+      </section>
     );
   }
 });
