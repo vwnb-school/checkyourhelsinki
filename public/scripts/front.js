@@ -1,15 +1,24 @@
 
+"use strict"
+
+const React = require('react');
+const ReactDOM = require('react-dom');
+const ReactHighcharts = require('react-highcharts');
 
 var ModuleList = React.createClass({
   render: function() {
     var modules = this.props.data.map(function(module) {
       switch(module.type){
         case "mess":
-        case "pie":
         case "text":
           return (
             <ShitModule title={module.title} data={module.data} type={module.type}>
             </ShitModule>
+          );
+        case "pie":
+          return (
+            <PieModule title={module.title} data={module.data} type={module.type}>
+            </PieModule>
           );
         case "map":
           return (
@@ -42,6 +51,64 @@ var ShitModule = React.createClass({
         {JSON.stringify(this.props.data)}
       </section>
     );
+  }
+});
+
+var PieModule = React.createClass({
+  rawMarkup: function() {
+    var md = new Remarkable();
+    var rawMarkup = md.render(this.props.children.toString());
+    return { __html: rawMarkup };
+  },
+  config: {
+    chart: {
+        plotBackgroundColor: null,
+        plotBorderWidth: null,
+        plotShadow: false,
+        type: 'pie'
+    },
+    tooltip: {
+        pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+    },
+    title:{text:''},
+    plotOptions: {
+        pie: {
+            allowPointSelect: true,
+            cursor: 'pointer',
+            dataLabels: {
+                enabled: true,
+                format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+                style: {
+                    color: (ReactHighcharts.theme && ReactHighcharts.theme.contrastTextColor) || 'black'
+                }
+            }
+        }
+    },
+    series:[{}]
+  },
+  renderPie: function(){
+    let chart = this.refs.chart.getChart();
+    chart.series[0].name = "Percentage";
+    for(var service in this.props.data){
+        chart.series[0].addPoint({
+            name: service,
+            y: this.props.data[service]
+        });
+    }
+  },
+  componentDidMount() { this.renderPie(); },
+  componentDidUpdate() { this.renderPie(); },
+  render: function() {
+
+    return (
+      <section className="module">
+        <h2>
+          {this.props.title}
+        </h2>
+        <ReactHighcharts config={this.config} ref="chart"></ReactHighcharts>
+      </section>
+    );
+
   }
 });
 
@@ -78,9 +145,8 @@ var MapModule = React.createClass({
     return (
       <section className="module">
         <h2>
-          Imaginary map of {this.props.title}
+          {this.props.title}
         </h2>
-        {JSON.stringify(this.props.data)}
         <div ref="map" style={{height:"500px"}}>I should be a map!</div>
       </section>
     );
