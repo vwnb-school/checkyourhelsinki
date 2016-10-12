@@ -1,12 +1,11 @@
 {
-  "name": "react-tutorial",
+  "name": "checkyourhelsinki",
   "version": "0.0.0",
   "private": true,
-  "license": "see LICENSE file",
-  "description": "Code from the React tutorial.",
   "main": "server.js",
   "dependencies": {
     "body-parser": "^1.4.3",
+    "browserify": "^13.1.0",
     "express": "^4.4.5",
     "geocoder": "^0.2.2",
     "jsdom": "^9.5.0",
@@ -20,21 +19,6 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/reactjs/react-tutorial.git"
-  },
-  "keywords": [
-    "react",
-    "tutorial",
-    "comment",
-    "example"
-  ],
-  "author": "petehunt",
-  "bugs": {
-    "url": "https://github.com/reactjs/react-tutorial/issues"
-  },
-  "homepage": "https://github.com/reactjs/react-tutorial",
   "engines": {
     "node": "0.12.x"
   }

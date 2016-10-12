@@ -145,7 +145,7 @@ app.get('/api', function(req, res) {
         addModule(introModule);
 
         /* 2: SERVICES */
-        request('http://www.hel.fi/palvelukarttaws/rest/v2/unit/?lat='+(data.results[0].geometry.location.lat).toFixed(5)+'&lon='+(data.results[0].geometry.location.lng).toFixed(5)+'&distance=250', function (error, response, body) {
+        request('http://www.hel.fi/palvelukarttaws/rest/v2/unit/?lat='+(data.results[0].geometry.location.lat).toFixed(5)+'&lon='+(data.results[0].geometry.location.lng).toFixed(5)+'&distance=800', function (error, response, body) {
             if (!error && response.statusCode == 200) {
                 
                 /* This part should always be always similar because these objects go to UI */

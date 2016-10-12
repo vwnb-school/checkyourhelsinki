@@ -51,7 +51,29 @@ var MapModule = React.createClass({
     var rawMarkup = md.render(this.props.children.toString());
     return { __html: rawMarkup };
   },
+  renderMap: function(){
+    this.map = new google.maps.Map(this.refs.map, {
+        center: {lat:60.1804927,lng:24.9098811},
+        zoom: 12
+    });
+    var bounds = new google.maps.LatLngBounds();
+    for(var service in this.props.data){
+        
+        var myLatlng = new google.maps.LatLng( this.props.data[service].latitude, this.props.data[service].longitude );
+        var marker = new google.maps.Marker({
+            position: myLatlng,
+            title:this.props.data[service].name_en
+        });
 
+        // To add the marker to the map, call setMap();
+        marker.setMap(this.map);
+        bounds.extend(marker.getPosition());
+    }
+
+    this.map.fitBounds(bounds);
+  },
+  componentDidMount() { this.renderMap(); },
+  componentDidUpdate() { this.renderMap(); },
   render: function() {
     return (
       <section className="module">
@@ -59,6 +81,7 @@ var MapModule = React.createClass({
           Imaginary map of {this.props.title}
         </h2>
         {JSON.stringify(this.props.data)}
+        <div ref="map" style={{height:"500px"}}>I should be a map!</div>
       </section>
     );
   }
