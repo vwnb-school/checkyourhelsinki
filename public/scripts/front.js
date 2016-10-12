@@ -4,6 +4,7 @@
 const React = require('react');
 const ReactDOM = require('react-dom');
 const ReactHighcharts = require('react-highcharts');
+const _ = require('underscore');
 
 var ModuleList = React.createClass({
   render: function() {
@@ -25,6 +26,11 @@ var ModuleList = React.createClass({
             <MapModule title={module.title} data={module.data} type={module.type}>
             </MapModule>
           );
+        case "pics":
+          return (
+            <PicModule title={module.title} data={module.data} type={module.type}>
+            </PicModule>
+          );
       }
     });
     return (
@@ -34,6 +40,10 @@ var ModuleList = React.createClass({
     );
   }
 });
+
+
+
+/* Placeholder */
 
 var ShitModule = React.createClass({
   rawMarkup: function() {
@@ -53,6 +63,36 @@ var ShitModule = React.createClass({
     );
   }
 });
+
+
+
+
+/* Pics */
+
+var PicModule = React.createClass({
+  rawMarkup: function() {
+    var md = new Remarkable();
+    var rawMarkup = md.render(this.props.children.toString());
+    return { __html: rawMarkup };
+  },
+
+  render: function() {
+    return (
+      <section className="module">
+        <h2>
+          {this.props.title}
+        </h2>
+        {this.props.data.photos.map(function(pic) {
+        return <img src={pic.photo_file_url} />
+        })}
+      </section>
+    );
+  }
+});
+
+
+
+/* Pie chart (generic, varying on props.data) */
 
 var PieModule = React.createClass({
   rawMarkup: function() {
@@ -111,6 +151,9 @@ var PieModule = React.createClass({
 
   }
 });
+
+
+/* Map */
 
 var MapModule = React.createClass({
   rawMarkup: function() {

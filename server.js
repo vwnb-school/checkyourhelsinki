@@ -47,7 +47,7 @@ app.get('/api', function(req, res) {
     var inputAddress = req.query.address;
     
     /* Number of different modules that should be requested */
-    var expectedNum = 4; //can be dynamic or defined by hand
+    var expectedNum = 5; //can be dynamic or defined by hand
     
     /* Results of those requests go in this array */
     var modules = [];
@@ -146,7 +146,7 @@ app.get('/api', function(req, res) {
 
         /* 2: SERVICES */
         request('http://www.hel.fi/palvelukarttaws/rest/v2/unit/?lat='+(data.results[0].geometry.location.lat).toFixed(5)+'&lon='+(data.results[0].geometry.location.lng).toFixed(5)+'&distance=800', function (error, response, body) {
-            if (!error && response.statusCode == 200) {
+            if (!error && response.statusCode == 200 && JSON.parse(body).length) {
                 
                 /* This part should always be always similar because these objects go to UI */
                 var serviceModule = {
@@ -157,8 +157,8 @@ app.get('/api', function(req, res) {
                 addModule( serviceModule );
 
             }else{
-                console.log(error);
-                console.log(response);
+                expectedNum = expectedNum - 1; /* 2 out of all modules fail on this check */
+                tryResponse();
             }
         })
 
@@ -215,6 +215,35 @@ app.get('/api', function(req, res) {
             tryResponse();
             
         }
+        
+        /* PICS */
+        
+        request('http://www.panoramio.com/map/get_panoramas.php?set=public&from=0&to=10'
+               +'&minx=' + (data.results[0].geometry.location.lng - 5)
+               +'&miny=' + (data.results[0].geometry.location.lat - 5)
+               +'&maxx=' + (data.results[0].geometry.location.lng + 5)
+               +'&maxy=' + (data.results[0].geometry.location.lat + 5)
+               +'&size=medium&mapfilter=true',
+            function (error, response, body) {
+                
+            if (!error && response.statusCode == 200) {
+                
+                /* This part should always be always similar because these objects go to UI */
+                var picModule = {
+                    title: "Pictures from the area",
+                    type: "pics",
+                    data: JSON.parse(body)
+                }
+                addModule( picModule );
+
+            }else{
+                console.log(error);
+                
+                expectedNum = expectedNum - 1; /* 2 out of all modules fail on this check */
+                tryResponse();
+            }
+        })
+
         
         
     });
