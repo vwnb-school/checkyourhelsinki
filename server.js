@@ -265,7 +265,7 @@ app.get('/api', function(req, res) {
                +'&size=medium&mapfilter=true',
             function (error, response, body) {
                 
-            if (!error && response.statusCode == 200) {
+            if (!error && response.statusCode == 200 && JSON.parse(body).photos.length) {
                 
                 /* This part should always be always similar because these objects go to UI */
                 var picModule = {
@@ -276,7 +276,6 @@ app.get('/api', function(req, res) {
                 addModule( picModule );
 
             }else{
-                console.log(error);
                 
                 expectedNum--;
                 tryResponse();
