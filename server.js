@@ -216,13 +216,13 @@ app.get('/api', function(req, res) {
             
         }
         
-        /* PICS */
-        
+        /* 4: PICS */
+        var panoramioRectangleRadius = 0.01; /* 0.05 lat/lng = about 6km */
         request('http://www.panoramio.com/map/get_panoramas.php?set=public&from=0&to=10'
-               +'&minx=' + (data.results[0].geometry.location.lng - 5)
-               +'&miny=' + (data.results[0].geometry.location.lat - 5)
-               +'&maxx=' + (data.results[0].geometry.location.lng + 5)
-               +'&maxy=' + (data.results[0].geometry.location.lat + 5)
+               +'&minx=' + (data.results[0].geometry.location.lng - panoramioRectangleRadius)
+               +'&miny=' + (data.results[0].geometry.location.lat - panoramioRectangleRadius)
+               +'&maxx=' + (data.results[0].geometry.location.lng + panoramioRectangleRadius)
+               +'&maxy=' + (data.results[0].geometry.location.lat + panoramioRectangleRadius)
                +'&size=medium&mapfilter=true',
             function (error, response, body) {
                 
@@ -239,7 +239,7 @@ app.get('/api', function(req, res) {
             }else{
                 console.log(error);
                 
-                expectedNum = expectedNum - 1; /* 2 out of all modules fail on this check */
+                expectedNum--;
                 tryResponse();
             }
         })
