@@ -11,10 +11,14 @@ var ModuleList = React.createClass({
     var modules = this.props.data.map(function(module) {
       switch(module.type){
         case "mess":
-        case "text":
           return (
             <ShitModule title={module.title} data={module.data} type={module.type}>
             </ShitModule>
+          );
+        case "text":
+          return (
+            <TextModule title={module.title} data={module.data} type={module.type}>
+            </TextModule>
           );
         case "pie":
           return (
@@ -53,8 +57,9 @@ var ShitModule = React.createClass({
   },
 
   render: function() {
+      console.log(this.props.data);
     return (
-      <section className="module">
+      <section style={{display:"none"}} className="module">
         <h2>
           {this.props.title}
         </h2>
@@ -65,6 +70,29 @@ var ShitModule = React.createClass({
 });
 
 
+/* Paragraphs (type text) */
+
+var TextModule = React.createClass({
+  rawMarkup: function() {
+    var md = new Remarkable();
+    var rawMarkup = md.render(this.props.children.toString());
+    return { __html: rawMarkup };
+  },
+
+  render: function() {
+      console.log(this.props.data);
+    return (
+      <section className="module">
+        <h2>
+          {this.props.title}
+        </h2>
+        {this.props.data.map(function(p) {
+        return <p>{p}</p>
+        })}
+      </section>
+    );
+  }
+});
 
 
 /* Pics */
@@ -127,7 +155,9 @@ var PieModule = React.createClass({
     series:[{}]
   },
   renderPie: function(){
+    console.log(this);
     let chart = this.refs.chart.getChart();
+    chart.series[0].setData([]);
     chart.series[0].name = "Percentage";
     for(var service in this.props.data){
         chart.series[0].addPoint({

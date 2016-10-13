@@ -47,7 +47,7 @@ app.get('/api', function(req, res) {
     var inputAddress = req.query.address;
     
     /* Number of different modules that should be requested */
-    var expectedNum = 5; //can be dynamic or defined by hand
+    var expectedNum = 6; //can be dynamic or defined by hand
     
     /* Results of those requests go in this array */
     var modules = [];
@@ -120,6 +120,35 @@ app.get('/api', function(req, res) {
             }
         }
         
+        /* Prepare demographics */
+
+        var demographicsObj = {};
+        var demographicsByRegion = xlsx.readFile("datasets/Helsinki_alueittain_2015.xlsx");
+        var rowNum;
+        if(typeof perusPiiri != "undefined"){
+            for(var i = 6; i <= 47; i++){ //find row number for Peruspiiri
+                if(demographicsByRegion.Sheets.Taulukko["A"+i].v.substring(0,3) == perusPiiri.properties.TUNNUS){
+                    rowNum = i;
+                    break;
+                }
+            }
+            /* loop cols */
+            for(var i = 2; i <= 131; i++){
+                // demographicsObj[ KEY ] = VALUE;
+                // KEY at row 3, VALUE at the rowNum figured above
+                // as thus: colName(i).toUpperCase()+rowNum
+                if(typeof demographicsByRegion.Sheets.Taulukko[ colName(i).toUpperCase() + "3" ] != "undefined"
+                    && typeof demographicsByRegion.Sheets.Taulukko[ colName(i).toUpperCase() + i ] != "undefined"){
+                    demographicsObj[ demographicsByRegion.Sheets.Taulukko[ colName(i).toUpperCase() + "3" ].v ] = demographicsByRegion.Sheets.Taulukko[ colName(i).toUpperCase() + rowNum ].v;
+                }
+            }
+        }
+        
+        
+        
+        
+        
+        
 
         /*** MODULE CALLS ***/
         //each different because the APIs are different
@@ -134,55 +163,29 @@ app.get('/api', function(req, res) {
             }
         }
         var titleStr = titleArr.join(" / ");
-        var descrStr = "";
-            descrStr = typeof perusPiiri != "undefined" ? titleStr + " is located in " + toTitleCase(perusPiiri.properties.NIMI) : "Couldn't map "+titleStr+" to any Helsinki neighborhood. Maybe it's not in Helsinki?";
+        var descrArr = [];
+            descrArr.push(typeof perusPiiri != "undefined" ? titleStr + " is located in " + toTitleCase(perusPiiri.properties.NIMI) + "." : "Couldn't map "+titleStr+" to any Helsinki neighborhood. Maybe it's not in Helsinki?");
+
+        if(Object.getOwnPropertyNames(demographicsObj).length){
+            descrArr.push("In total, " + demographicsByRegion.Sheets.Taulukko[ "AG" + rowNum ].v + " people live in the area.");
+            descrArr.push("The population density is " + demographicsByRegion.Sheets.Taulukko[ "AD" + rowNum ].v + " people per square kilometer.");
+            descrArr.push("The employment rate in " + toTitleCase(perusPiiri.properties.NIMI) + " is " + demographicsByRegion.Sheets.Taulukko[ "DZ" + rowNum ].v + "%.");
+            descrArr.push("Average annual income of a person living in " + toTitleCase(perusPiiri.properties.NIMI) + " is " + demographicsByRegion.Sheets.Taulukko[ "BM" + rowNum ].v + "€.");
+            descrArr.push("In " + toTitleCase(perusPiiri.properties.NIMI) + ", you will find " + demographicsByRegion.Sheets.Taulukko[ "DP" + rowNum ].v + " Alko stores.");
+        }
         
         var introModule = {
             title: titleStr,
             type: "text",
-            data: descrStr
+            data: descrArr
         }
         addModule(introModule);
-
-        /* 2: SERVICES */
-        request('http://www.hel.fi/palvelukarttaws/rest/v2/unit/?lat='+(data.results[0].geometry.location.lat).toFixed(5)+'&lon='+(data.results[0].geometry.location.lng).toFixed(5)+'&distance=800', function (error, response, body) {
-            if (!error && response.statusCode == 200 && JSON.parse(body).length) {
-                
-                /* This part should always be always similar because these objects go to UI */
-                var serviceModule = {
-                    title: "Services in the area",
-                    type: "map",
-                    data: JSON.parse(body)
-                }
-                addModule( serviceModule );
-
-            }else{
-                expectedNum = expectedNum - 1; /* 2 out of all modules fail on this check */
-                tryResponse();
-            }
-        })
-
-
-
-        /* 3: DEMOGRAPHICS */
-
-        var demographicsByRegion = xlsx.readFile("datasets/Helsinki_alueittain_2015.xlsx");
-        var rowNum;
-        var demographicsObj = {};
-        if(typeof perusPiiri != "undefined"){
-            for(var i = 6; i <= 47; i++){ //find row number for Peruspiiri
-                if(demographicsByRegion.Sheets.Taulukko["A"+i].v.substring(0,3) == perusPiiri.properties.TUNNUS){
-                    rowNum = i;
-                    break;
-                }
-            }
-            /* loop cols */
-            for(var i = 2; i <= 131; i++){
-                // demographicsObj[ KEY ] = VALUE;
-                // KEY at row 3, VALUE at the rowNum figured above
-                // as thus: colName(i).toUpperCase()+rowNum
-                demographicsObj[ demographicsByRegion.Sheets.Taulukko[ colName(i).toUpperCase() + "3" ].v ] = demographicsByRegion.Sheets.Taulukko[ colName(i).toUpperCase() + rowNum ].v;
-            }
+        
+        
+        
+        /* 2: DEMOGRAPHICS */
+        
+        if(Object.getOwnPropertyNames(demographicsObj).length){
             
             var demographicsModule = {
                 title: "Big mess of demographics",
@@ -208,13 +211,49 @@ app.get('/api', function(req, res) {
             addModule( ageDemographicsModule );
             
             
+            
+            var attractivenessModule = {
+                title: "Attractiveness",
+                type: "pie",
+                data: pruneObject(demographicsObj, [
+                        "Muutto alueelle lkm",
+                        "Muutto alueelta lkm"
+                      ])
+            }
+            addModule( attractivenessModule );
+            
+            
         }else{
             
             /* Upon failure, lower expectations */
-            expectedNum = expectedNum - 2; /* 2 out of all modules fail on this check */
+            expectedNum = expectedNum - 3; /* 3 out of all modules fail on this check */
             tryResponse();
             
         }
+        
+        
+
+        /* 3: SERVICES */
+        request('http://www.hel.fi/palvelukarttaws/rest/v2/unit/?lat='+(data.results[0].geometry.location.lat).toFixed(5)+'&lon='+(data.results[0].geometry.location.lng).toFixed(5)+'&distance=800', function (error, response, body) {
+            if (!error && response.statusCode == 200 && JSON.parse(body).length) {
+                
+                /* This part should always be always similar because these objects go to UI */
+                var serviceModule = {
+                    title: "Services in the area",
+                    type: "map",
+                    data: JSON.parse(body)
+                }
+                addModule( serviceModule );
+
+            }else{
+                expectedNum = expectedNum - 1;
+                tryResponse();
+            }
+        })
+
+
+
+
         
         /* 4: PICS */
         var panoramioRectangleRadius = 0.01; /* 0.05 lat/lng = about 6km */
@@ -230,7 +269,7 @@ app.get('/api', function(req, res) {
                 
                 /* This part should always be always similar because these objects go to UI */
                 var picModule = {
-                    title: "Pictures from the area",
+                    title: "Pictures from around the area",
                     type: "pics",
                     data: JSON.parse(body)
                 }
@@ -242,6 +281,7 @@ app.get('/api', function(req, res) {
                 expectedNum--;
                 tryResponse();
             }
+            
         })
 
         
