@@ -1,4 +1,5 @@
 
+
 "use strict"
 
 const React = require('react');
@@ -198,7 +199,7 @@ var MapModule = React.createClass({
     });
     var bounds = new google.maps.LatLngBounds();
     for(var service in this.props.data){
-        
+
         var myLatlng = new google.maps.LatLng( this.props.data[service].latitude, this.props.data[service].longitude );
         var marker = new google.maps.Marker({
             position: myLatlng,
@@ -259,6 +260,8 @@ var AddressForm = React.createClass({
   }
 });
 
+
+
 var ModuleWrap = React.createClass({
   handleAddressSubmit: function(data) {
     console.log(this.props);
@@ -288,6 +291,36 @@ var ModuleWrap = React.createClass({
   }
 });
 
+var Form = React.createClass({
+
+  render: function() {
+    return (
+      <nav className="navbar navbar-default">
+     <div className="container-fluid">
+     <div className="navbar-header">
+    <div className="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+    <ul className="nav navbar-nav">
+    <li><a className="navbar-brand" href="#">
+      Check Helsinki </a></li>
+    <li><a href="#">Home</a></li>
+    <li><a href="#">Find Services</a></li>
+    <li><a href="#">Blog</a></li>
+    <li><a href="#">API</a></li>
+    <li><a href="#">Contact</a></li>
+    </ul>
+    </div>
+    </div>
+  </div>
+</nav>
+    );
+  }
+});
+
+
+ReactDOM.render(
+  <Form  />,
+  document.getElementById('nav')
+);
 
 ReactDOM.render(
   <ModuleWrap url="/api" />,
